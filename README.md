@@ -1,0 +1,1 @@
+Python script to scan screen for QR code and auto-click base on pixel colors

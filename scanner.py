@@ -1,0 +1,95 @@
+import PIL.ImageGrab
+import PIL.Image
+import cv2
+import numpy as np
+import webbrowser
+import time
+import datetime
+import pyautogui
+
+def is_color_near(current_color, target_color, tolerance=10):
+    """
+    Checks if current_color is within +/- tolerance of target_color
+    """
+    r_curr, g_curr, b_curr = current_color
+    r_targ, g_targ, b_targ = target_color
+
+    return (abs(r_curr - r_targ) <= tolerance and
+            abs(g_curr - g_targ) <= tolerance and
+            abs(b_curr - b_targ) <= tolerance)
+
+
+def scan_screen_with_opencv(click_x, click_y, x1, y1, x2, y2):
+    bbox = (x1, y1, x2, y2)
+
+    detector = cv2.QRCodeDetector()
+
+    clickable_color = (216, 72, 109)
+
+    disable_color = (21, 51, 205)
+
+    last_url = None
+
+    clicked = False
+
+    sleep_time = 10
+    try:
+        while True:
+
+            screenshot_click = PIL.ImageGrab.grab(bbox=(click_x, click_y, click_x + 2, click_y + 2)).convert('RGB')
+            r, g, b = screenshot_click.getpixel((0, 0))
+            print(r, g, b)
+
+            if is_color_near((r, g, b), clickable_color) and clicked == False:
+                print(datetime.datetime.now(),":button clickable")
+                pyautogui.click(click_x,click_y,60,0.05)
+                clicked = True
+                sleep_time = 1
+
+            elif is_color_near((r, g, b), disable_color):
+                clicked = False
+                sleep_time = 10
+            # 1. Capture screen
+            screenshot = PIL.ImageGrab.grab(bbox=bbox)
+
+            # 2. Convert to OpenCV format (BGR)
+            frame = np.array(screenshot)
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+            # 3. Detect and Decode
+            # 'data' will contain the URL if a QR code is found
+            data, bbox_array, _ = detector.detectAndDecode(frame)
+
+
+            if data:
+                if data != last_url:
+                    print(datetime.datetime.now(),":qr code appeared")
+                    webbrowser.open(data)
+                    time.sleep(20)
+                    # switch back to chrome page
+                    pyautogui.keyDown("command")
+                    pyautogui.press("tab")
+                    pyautogui.keyUp("command")
+
+                    last_url = data
+
+            # Sleep to save CPU
+            time.sleep(sleep_time)
+
+    except KeyboardInterrupt:
+        print("\nScanner stopped.")
+
+
+if __name__ == "__main__":
+    # Pull cursor to top right to escape
+    pyautogui.FAILSAFE = True
+    # QR Code location
+    START_X = 0
+    START_Y = 0
+    END_X = 165
+    END_Y = 400
+    # Click location 165 400
+    CLICK_X = 1236
+    CLICK_Y = 757
+    # Click position
+    scan_screen_with_opencv(CLICK_X, CLICK_Y, START_X, START_Y, END_X, END_Y)
