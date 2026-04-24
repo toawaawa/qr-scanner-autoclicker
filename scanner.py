@@ -19,7 +19,9 @@ TOKEN = os.getenv("TELEGRAM_API")
 CHAT_ID = os.getenv("TELEGRAM_ID")
 
 def send_telegram_msg(message):
-
+    if not TOKEN or not CHAT_ID:
+        print("telegram disabled")
+        return
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
 
     payload = {
@@ -59,7 +61,7 @@ def scan_screen_with_opencv(click_x, click_y, x1, y1, x2, y2):
     sleep_time = 10
     try:
         while True:
-
+            # 1. click
             screenshot_click = PIL.ImageGrab.grab(bbox=(click_x, click_y, click_x + 2, click_y + 2)).convert('RGB')
             r, g, b = screenshot_click.getpixel((0, 0))
             print(r, g, b)
@@ -72,18 +74,15 @@ def scan_screen_with_opencv(click_x, click_y, x1, y1, x2, y2):
 
             elif is_color_near((r, g, b), disable_color):
                 clicked = False
-                sleep_time = 10
-            # 1. Capture screen
+                sleep_time = 30
+
+            # 2. scan QR code
             screenshot = PIL.ImageGrab.grab(bbox=bbox)
 
-            # 2. Convert to OpenCV format (BGR)
             frame = np.array(screenshot)
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
-            # 3. Detect and Decode
-            # 'data' will contain the URL if a QR code is found
             data, bbox_array, _ = detector.detectAndDecode(frame)
-
 
             if data:
                 if data != last_url:
