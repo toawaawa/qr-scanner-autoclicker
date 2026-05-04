@@ -97,6 +97,8 @@ def scan_screen_with_opencv(click_x, click_y, x1, y1, x2, y2):
 
                     last_url = data
 
+                    sleep_time = 30
+
             # Sleep to save CPU
             time.sleep(sleep_time)
 
