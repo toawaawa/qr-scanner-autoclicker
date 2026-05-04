@@ -21,7 +21,7 @@ def grab_gift():
     pyautogui.keyUp("ctrl")
     # 2. refresh
     pyautogui.click(refresh_x, refresh_y, 1)
-    time.sleep(0.2)
+    time.sleep(0.5)
     # 3. Put cursor on main page
     pyautogui.click(main_x, main_y, 1)
     # 4. scroll to destination
